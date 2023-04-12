@@ -3,7 +3,8 @@
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-const URL = "https://api.tvmaze.com/search/shows";
+const URL = "https://api.tvmaze.com/search/shows"; //TODO: rename me
+//TODO: base URL
 
 
 /** Given a search term, search for tv shows that match that query.
@@ -12,18 +13,19 @@ const URL = "https://api.tvmaze.com/search/shows";
  *    Each show object should contain exactly: {id, name, summary, image}
  *    (if no image URL given by API, put in a default image URL)
  */
-
 async function getShowsByTerm(term) {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
-  //returns an array of shows
   const shows = await axios({
     url: URL,
+    //TODO: base URL
     method: 'get',
     params: { q: term }
   });
 
-  console.log(shows);
   return shows.data.map((show) => {
+    const {id, name, summary, image } = show.show;
+
+
+    //TODO: refactor
     return {
       id: show.show.id,
       name: show.show.name,
@@ -33,19 +35,30 @@ async function getShowsByTerm(term) {
   });
 }
 
+/**
+ * Returns the medium image if it is present, falling back to the original size image
+ * or a stand-in image if none are present.
+ * @param {*} image a POJO possibly containing images for the show
+ * @returns An image if one was present or a stand-in one
+ */
 function checkImage(image) {
   if (image === null) {
     return "https://tinyurl.com/tv-missing";
-  } else {
-    return image.medium;
   }
+
+  if (image.medium !== null) {
+    return image.medium;
+  } else if (image.original) {
+    return image.original;
+  }
+
+  return "https://tinyurl.com/tv-missing";
 }
 
 /** Given list of shows, create markup for each and append to DOM.
  *
  * A show is {id, name, summary, image}
  * */
-
 function displayShows(shows) {
   $showsList.empty();
 
@@ -54,8 +67,8 @@ function displayShows(shows) {
         <div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
-              alt="Bletchly Circle San Francisco"
+              src="${show.image}"
+              alt="${show.name}"
               class="w-25 me-3">
            <div class="media-body">
              <h5 class="text-primary">${show.name}</h5>
