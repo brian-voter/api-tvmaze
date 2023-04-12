@@ -3,9 +3,7 @@
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-const URL = "https://api.tvmaze.com/search/shows"; //TODO: rename me
-//TODO: base URL
-
+const BASE_URL = "https://api.tvmaze.com";
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -15,22 +13,20 @@ const URL = "https://api.tvmaze.com/search/shows"; //TODO: rename me
  */
 async function getShowsByTerm(term) {
   const shows = await axios({
-    url: URL,
-    //TODO: base URL
+    url: "/search/shows",
+    baseURL: BASE_URL,
     method: 'get',
     params: { q: term }
   });
 
   return shows.data.map((show) => {
-    const {id, name, summary, image } = show.show;
+    const { id, name, summary, image } = show.show;
 
-
-    //TODO: refactor
     return {
-      id: show.show.id,
-      name: show.show.name,
-      summary: show.show.summary,
-      image: checkImage(show.show.image)
+      id,
+      name,
+      summary,
+      image: checkImage(image)
     };
   });
 }
@@ -103,15 +99,43 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
   await searchShowsAndDisplay();
 });
 
+//URL: /shows/:id/episodes
 
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id) {
+  const episodes = await axios({
+    url: `/shows/${id}/episodes`,
+    baseURL: BASE_URL,
+    method: 'get'
+  });
+
+  return episodes.data.map((episode) => {
+    const { id, name, season, number } = episode;
+
+    return {
+      id,
+      name,
+      season,
+      number
+    };
+  });
+}
 
 /** Write a clear docstring for this function... */
 
-// function displayEpisodes(episodes) { }
+function displayEpisodes(episodes) {
+  const $episodesList = $("#episodesList");
+  $episodesList.empty();
+
+  for (let episode of episodes) {
+    let $episode = $(`<li>${episode.name} (Season ${episode.season}) ${episode.number}</li>`);
+    $episodesList.append($episode);
+  }
+
+  $episodesArea.show()
+}
 
 // add other functions that will be useful / match our structure & design
