@@ -1,9 +1,10 @@
 "use strict";
 
+const BASE_URL = "https://api.tvmaze.com";
+
 const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
-const BASE_URL = "https://api.tvmaze.com";
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -77,15 +78,15 @@ function displayShows(shows) {
        </div>
       `);
 
+    $show.on("click", ".Show-getEpisodes", () => getAndDisplayEpisodes(show.id));
+
     $showsList.append($show);
   }
 }
 
-
 /** Handle search form submission: get shows from API and display.
  *    Hide episodes area (that only gets shown if they ask for episodes)
  */
-
 async function searchShowsAndDisplay() {
   const term = $("#searchForm-term").val();
   const shows = await getShowsByTerm(term);
@@ -99,12 +100,9 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
   await searchShowsAndDisplay();
 });
 
-//URL: /shows/:id/episodes
-
 /** Given a show ID, get from API and return (promise) array of episodes:
  *      { id, name, season, number }
  */
-
 async function getEpisodesOfShow(id) {
   const episodes = await axios({
     url: `/shows/${id}/episodes`,
@@ -124,18 +122,26 @@ async function getEpisodesOfShow(id) {
   });
 }
 
-/** Write a clear docstring for this function... */
-
+/**
+ * Adds a list of episodes to the episodes list container
+ * @param {*[]} episodes array of episodes
+ */
 function displayEpisodes(episodes) {
   const $episodesList = $("#episodesList");
   $episodesList.empty();
 
   for (let episode of episodes) {
-    let $episode = $(`<li>${episode.name} (Season ${episode.season}) ${episode.number}</li>`);
+    let $episode = $(`<li>${episode.name} (Season ${episode.season} Episode ${episode.number})</li>`);
     $episodesList.append($episode);
   }
 
   $episodesArea.show()
 }
 
-// add other functions that will be useful / match our structure & design
+/**
+ * Gets and displays episodes for a given show ID
+ * @param {number} showId the show ID
+ */
+async function getAndDisplayEpisodes(showId) {
+  displayEpisodes(await getEpisodesOfShow(showId));
+}
